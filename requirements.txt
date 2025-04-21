@@ -5,6 +5,3 @@ matplotlib
 seaborn
 xlsxwriter
 openpyxl
-plotly
-plotly_express
-plotly.io
