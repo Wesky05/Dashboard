@@ -34,10 +34,17 @@ def carregar_dados():
 # Estilos visuais do Streamlit
 st.markdown("""
     <style>
+        body {
+            background-color: #0E1117;
+        }
+        .block-container {
+            background-color: #0E1117;
+            padding-top: 0.1rem; 
+            padding-bottom: 1rem;
+        }
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
-        .block-container {padding-top: 0.1rem; padding-bottom: 1rem;}
         section[data-testid="stSidebar"] {
             background-color: #56447A;
         }
@@ -46,6 +53,7 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
+
 
 # Estilo dos cards 
 def metric_card(title, value, subtitle):
@@ -215,3 +223,14 @@ else:
         st.pyplot(fig3)
     with col7:
         st.pyplot(fig4)
+
+# Botão de sair
+st.sidebar.markdown("""
+    <hr style="margin-top: 20px; margin-bottom: 10px;">
+    <a href="https://neurotrack.kwautomation.shop/" target="_self" style="text-decoration: none;">
+        <div style="background-color: #D32F2F; color: white; padding: 10px; border-radius: 5px; 
+                    text-align: center; font-weight: bold; font-size: 14px;">
+            🚪 Sair
+        </div>
+    </a>
+""", unsafe_allow_html=True)
