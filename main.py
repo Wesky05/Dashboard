@@ -26,7 +26,7 @@ def carregar_dados():
     cursor = conexao.cursor()
     cursor.execute("SELECT nome, cpf, genero, suicidio_historico, familia_historico, substancias_uso, predicao FROM requisicoes")
     resultados = cursor.fetchall()
-    colunas = ["Nome", "CPF", "Gênero", "Histórico de Suicídio", "Histórico Familiar", "Substâncias de Uso", "Predição"]
+    colunas = ["Nome", "CPF", "Gênero", "Histórico de Suicídio", "Histórico Familiar", "Uso de Substância", "Predição"]
     df = pd.DataFrame(resultados, columns=colunas)
     conexao.close()
     return df
@@ -56,14 +56,14 @@ st.markdown("""
 
 
 # Estilo dos cards 
-def metric_card(title, value, subtitle):
+def metric_card(titulo, valor, subtitulo):
     st.markdown(f"""
         <div style="background-color: #ffffff; padding: 6px; border-radius: 8px; 
                     text-align: center; box-shadow: 1px 1px 4px rgba(0,0,0,0.1); 
                     font-size: 10px;">
-            <h5 style="color: #6A1B9A; margin: 0;">{title}</h5>
-            <h3 style="color: #8E24AA; margin: 5px 0;">{value}</h3>
-            <p style="color: #A66BBE; margin: 0;">{subtitle}</p>
+            <h5 style="color: #6A1B9A; margin: 0;">{titulo}</h5>
+            <h3 style="color: #8E24AA; margin: 5px 0;">{valor}</h3>
+            <p style="color: #A66BBE; margin: 0; font-size: 16px;">{subtitulo}</p> 
         </div>
     """, unsafe_allow_html=True)
 
@@ -79,8 +79,8 @@ suicidio_filtrado = st.sidebar.selectbox("Histórico de Suicídio:", ["Todos"] +
 familia_historico = dados["Histórico Familiar"].dropna().unique()
 familia_filtrado = st.sidebar.selectbox("Histórico Familiar:", ["Todos"] + list(familia_historico))
 
-substancias_uso = dados["Substâncias de Uso"].dropna().unique()
-substancias_filtrado = st.sidebar.selectbox("Substâncias de Uso:", ["Todos"] + list(substancias_uso))
+substancias_uso = dados["Uso de Substância"].dropna().unique()
+substancias_filtrado = st.sidebar.selectbox("Uso de Substância:", ["Todos"] + list(substancias_uso))
 
 predicoes_valores = dados["Predição"].dropna().astype(str).unique().tolist()
 predicao_filtrada = st.sidebar.selectbox("Predição (Risco Detectado):", ["Todos"] + predicoes_valores)
@@ -113,9 +113,12 @@ if suicidio_filtrado != "Todos":
 if familia_filtrado != "Todos":
     dados = dados[dados["Histórico Familiar"] == familia_filtrado]
 if substancias_filtrado != "Todos":
-    dados = dados[dados["Substâncias de Uso"] == substancias_filtrado]
+    dados = dados[dados["Uso de Substância"] == substancias_filtrado]
 if predicao_filtrada != "Todos":
     dados = dados[dados["Predição"].astype(str) == predicao_filtrada]
+
+# Para contar os casos positivos de "Uso de Substância"
+uso_substancia_positivo = dados[dados["Uso de Substância"] == "sim"].shape[0]
 
 # Se CPF for pesquisado
 if cpf_pesquisar:
@@ -126,29 +129,32 @@ if cpf_pesquisar:
     else:
         st.warning("Nenhum paciente encontrado com esse CPF.")
 else:
-    # Métricas
     total_pacientes = len(dados)
-    total_generos = dados["Gênero"].nunique()
-    total_suicidio = dados["Histórico de Suicídio"].nunique()
+    esquizofrenia_predicao_positiva = dados[dados["Predição"].astype(str) == "1"].shape[0]
+    suicidio_positivo = dados[dados["Histórico de Suicídio"] == "Sim"].shape[0]
 
     col1, col2, col3 = st.columns(3)
     with col1:
         metric_card("Pacientes", total_pacientes, "Total filtrado")
     with col2:
-        metric_card("Gêneros", total_generos, "Distintos")
+        metric_card("Predições Positivas", esquizofrenia_predicao_positiva, "Para Esquizofrenia")
     with col3:
-        metric_card("Histórico de Suicídio", total_suicidio, "Distintos")
+        metric_card("Uso de Substância", uso_substancia_positivo, "Casos Positivos")
 
-    st.markdown("---")
+    st.markdown("<hr style='border: 1px solid #56447A; margin-top: 30px; margin-bottom: 30px;'>", unsafe_allow_html=True)
+
 
     # Tabela 
     st.subheader("📋 Lista de Pacientes")
     st.dataframe(dados, use_container_width=True, height=200)
 
+    st.markdown("<hr style='border: 1px solid #56447A; margin-top: 30px; margin-bottom: 30px;'>", unsafe_allow_html=True)
+
+
     # Gráficos
     genero_count = dados["Gênero"].value_counts()
     suicidio_count = dados["Histórico de Suicídio"].value_counts()
-    substancias_count = dados["Substâncias de Uso"].value_counts()
+    substancias_count = dados["Uso de Substância"].value_counts()
     predicao_count = dados["Predição"].value_counts()
 
     # Gêneros
@@ -180,7 +186,7 @@ else:
     )
     ax2.set_title("Histórico de Suicídio", fontsize=8, color="#6A1B9A")
 
-    # Substâncias de Uso (Barras laterais)
+    # Uso de Substância (Barras laterais)
     fig3, ax3 = plt.subplots(figsize=(2.5, 1.5))
     sns.barplot(
         y=substancias_count.index,
@@ -188,7 +194,7 @@ else:
         ax=ax3,
         palette="Purples"
     )
-    ax3.set_title("Substâncias de Uso", fontsize=8, color="#6A1B9A")
+    ax3.set_title("Uso de Substância", fontsize=8, color="#6A1B9A")
     ax3.set_xlabel("Quantidade", fontsize=6)
     ax3.set_ylabel("")
     ax3.tick_params(axis='y', labelsize=6)
